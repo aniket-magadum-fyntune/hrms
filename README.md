@@ -112,6 +112,10 @@ npm run format:check
 npm run types:check
 ```
 
+## Production Image
+
+This app is packaged as a single-tenant product image. Demo request handling, per-client topology, domains, expiry, cleanup, and autoscaling live in the separate provisioning app. See [docs/docker-image.md](docs/docker-image.md) for the image build and runtime contract.
+
 ## Package Setup Notes
 
 The package config and migration files have been published for Horizon, Telescope, Spatie Permission, Spatie Health, Spatie Settings, Opcodes Log Viewer, and Spatie Web Tinker.

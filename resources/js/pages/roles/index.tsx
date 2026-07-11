@@ -81,7 +81,9 @@ function RoleDialog({
             <DialogContent className="sm:max-w-xl">
                 <form onSubmit={submit} className="space-y-5">
                     <DialogHeader>
-                        <DialogTitle>{role ? 'Edit role' : 'New role'}</DialogTitle>
+                        <DialogTitle>
+                            {role ? 'Edit role' : 'New role'}
+                        </DialogTitle>
                         <DialogDescription>
                             Define a role and the permissions it grants.
                         </DialogDescription>

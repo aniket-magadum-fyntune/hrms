@@ -32,13 +32,7 @@ type UsersIndexProps = {
     currentUserId: number;
 };
 
-function UserDialog({
-    user,
-    roles,
-}: {
-    user?: AccessUser;
-    roles: string[];
-}) {
+function UserDialog({ user, roles }: { user?: AccessUser; roles: string[] }) {
     const [open, setOpen] = useState(false);
     const form = useForm<UserForm>({
         name: user?.name ?? '',

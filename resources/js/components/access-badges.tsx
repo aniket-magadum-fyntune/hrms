@@ -7,7 +7,9 @@ type AccessBadgesProps = {
 
 export function AccessBadges({ values, emptyText }: AccessBadgesProps) {
     if (values.length === 0) {
-        return <span className="text-sm text-muted-foreground">{emptyText}</span>;
+        return (
+            <span className="text-sm text-muted-foreground">{emptyText}</span>
+        );
     }
 
     return (
