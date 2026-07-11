@@ -146,6 +146,15 @@ class AppSetupCommand extends Command
 
         $validated = $validator->validate();
 
+        /** @var array{
+         *     super_admin_name: string,
+         *     super_admin_email: string,
+         *     super_admin_password: string,
+         *     admin_name: string,
+         *     admin_email: string,
+         *     admin_password: string
+         * } $validated
+         */
         if (Str::lower($validated['super_admin_email']) === Str::lower($validated['admin_email'])) {
             throw ValidationException::withMessages([
                 'admin_email' => 'The Admin email must be different from the Super Admin email.',
@@ -200,6 +209,7 @@ class AppSetupCommand extends Command
     private function provisionUsers(array $input, array $passwords): array
     {
         return DB::transaction(function () use ($input, $passwords): array {
+            /** @var User $superAdmin */
             $superAdmin = User::query()->create([
                 'name' => $input['super_admin_name'],
                 'email' => $input['super_admin_email'],
@@ -207,6 +217,7 @@ class AppSetupCommand extends Command
                 'email_verified_at' => Carbon::now(),
             ]);
 
+            /** @var User $admin */
             $admin = User::query()->create([
                 'name' => $input['admin_name'],
                 'email' => $input['admin_email'],
