@@ -60,5 +60,11 @@ jobs:
       - name: Run Type Analysis
         run: composer types:check
 
-      - name: Tests
-        run: php artisan test
+      - name: Pest Tests
+        run: ./vendor/bin/pest
+
+      - name: Pest Test Coverage
+        run: composer test:coverage
+
+      - name: Pest Type Coverage
+        run: composer test:type-coverage
