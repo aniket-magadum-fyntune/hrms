@@ -62,10 +62,18 @@ For the default SQLite setup, create the database file if it does not exist:
 touch database/database.sqlite
 ```
 
-Run migrations:
+Run migrations, then run the application setup command:
 
 ```bash
 php artisan migrate
+php artisan app:setup --force
+```
+
+This creates the default local access accounts:
+
+```text
+Super Admin: super@example.com / password
+Admin: admin@example.com / password
 ```
 
 Start the development environment:
@@ -112,9 +120,10 @@ After a fresh install, run:
 
 ```bash
 php artisan migrate
+php artisan app:setup --force
 ```
 
-This applies the application tables plus package tables for settings, Telescope, permissions, and health checks.
+Migrations apply the application tables plus package tables for settings, Telescope, permissions, and health checks. Setup creates the built-in roles, permissions, and initial access users.
 
 The `App\Models\User` model uses Spatie's `HasRoles` trait, so role and permission APIs are available on users.
 
@@ -162,10 +171,36 @@ Generate an app key only once for a new production environment:
 php artisan key:generate
 ```
 
-Run database migrations during deployment:
+Run migrations, then run the one-time application setup command for a new production environment:
 
 ```bash
 php artisan migrate --force
+
+php artisan app:setup \
+  --super-admin-name="Super Admin" \
+  --super-admin-email="owner@company.com" \
+  --admin-name="Admin" \
+  --admin-email="admin@company.com" \
+  --generate-passwords \
+  --mail-passwords \
+  --force
+```
+
+This creates the built-in access records and emails generated passwords to the setup users. Configure mail before running this command.
+
+For later releases that add permissions, run:
+
+```bash
+php artisan migrate --force
+php artisan app:sync-access --force
+```
+
+`app:sync-access` creates new product permissions and default roles when they are missing. It does not change existing role assignments by default; the organization's Super Admin decides which roles receive newly published permissions.
+
+To intentionally reapply the code-defined initial permissions to controlled default roles, run:
+
+```bash
+php artisan app:sync-access --sync-role-defaults --force
 ```
 
 Cache Laravel bootstrap files after environment variables are correct:
