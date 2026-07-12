@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Admin\DesignationController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
@@ -35,6 +37,32 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('roles/{role}', [RoleController::class, 'destroy'])
         ->name('roles.destroy')
         ->middleware('permission:roles.delete');
+
+    Route::get('departments', [DepartmentController::class, 'index'])
+        ->name('departments.index')
+        ->middleware('permission:departments.view');
+    Route::post('departments', [DepartmentController::class, 'store'])
+        ->name('departments.store')
+        ->middleware('permission:departments.create');
+    Route::match(['put', 'patch'], 'departments/{department}', [DepartmentController::class, 'update'])
+        ->name('departments.update')
+        ->middleware('permission:departments.update');
+    Route::delete('departments/{department}', [DepartmentController::class, 'destroy'])
+        ->name('departments.destroy')
+        ->middleware('permission:departments.delete');
+
+    Route::get('designations', [DesignationController::class, 'index'])
+        ->name('designations.index')
+        ->middleware('permission:designations.view');
+    Route::post('designations', [DesignationController::class, 'store'])
+        ->name('designations.store')
+        ->middleware('permission:designations.create');
+    Route::match(['put', 'patch'], 'designations/{designation}', [DesignationController::class, 'update'])
+        ->name('designations.update')
+        ->middleware('permission:designations.update');
+    Route::delete('designations/{designation}', [DesignationController::class, 'destroy'])
+        ->name('designations.destroy')
+        ->middleware('permission:designations.delete');
 
     Route::get('permissions', [PermissionController::class, 'index'])
         ->name('permissions.index')

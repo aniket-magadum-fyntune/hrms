@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Access\AccessRegistry;
 use App\Http\Controllers\Controller;
+use App\Models\Department;
+use App\Models\Designation;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
@@ -20,7 +23,7 @@ class UserController extends Controller
         $isSuperAdmin = Auth::user()?->hasRole(AccessRegistry::SUPER_ADMIN_ROLE) ?? false;
 
         $users = User::query()
-            ->with(['roles:id,name'])
+            ->with(['department:id,name', 'designation:id,name', 'roles:id,name'])
             ->when(! $isSuperAdmin, fn ($query) => $query->whereDoesntHave('roles', fn ($roles) => $roles->where('name', AccessRegistry::SUPER_ADMIN_ROLE)))
             ->orderBy('name')
             ->get()
@@ -28,6 +31,10 @@ class UserController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'department_id' => $user->department_id,
+                'department' => $user->department?->name,
+                'designation_id' => $user->designation_id,
+                'designation' => $user->designation?->name,
                 'roles' => $user->roles->pluck('name')->values(),
                 'created_at' => $user->created_at?->toFormattedDateString(),
             ]);
@@ -38,6 +45,12 @@ class UserController extends Controller
                 ->when(! $isSuperAdmin, fn ($query) => $query->where('name', '!=', AccessRegistry::SUPER_ADMIN_ROLE))
                 ->orderBy('name')
                 ->pluck('name'),
+            'departments' => Department::query()
+                ->orderBy('name')
+                ->get(['id', 'name']),
+            'designations' => Designation::query()
+                ->orderBy('name')
+                ->get(['id', 'name']),
             'currentUserId' => Auth::id(),
         ]);
     }
@@ -48,16 +61,21 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
+            'department_id' => ['nullable', 'integer', Rule::exists('departments', 'id')],
+            'designation_id' => ['nullable', 'integer', Rule::exists('designations', 'id')],
             'roles' => ['array'],
             'roles.*' => ['string', Rule::exists('roles', 'name')],
         ]);
 
         $this->authorizeRoleAssignment($request, $validated['roles'] ?? []);
+        $this->ensureDesignationHasCapacity($validated['designation_id'] ?? null);
 
         $user = User::query()->create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => $validated['password'],
+            'department_id' => $validated['department_id'] ?? null,
+            'designation_id' => $validated['designation_id'] ?? null,
         ]);
 
         $user->syncRoles($validated['roles'] ?? []);
@@ -73,15 +91,20 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:8'],
+            'department_id' => ['nullable', 'integer', Rule::exists('departments', 'id')],
+            'designation_id' => ['nullable', 'integer', Rule::exists('designations', 'id')],
             'roles' => ['array'],
             'roles.*' => ['string', Rule::exists('roles', 'name')],
         ]);
 
         $this->authorizeRoleAssignment($request, $validated['roles'] ?? []);
+        $this->ensureDesignationHasCapacity($validated['designation_id'] ?? null, $user);
 
         $user->fill([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'department_id' => $validated['department_id'] ?? null,
+            'designation_id' => $validated['designation_id'] ?? null,
         ]);
 
         if (! empty($validated['password'])) {
@@ -115,5 +138,26 @@ class UserController extends Controller
             403,
             'Only Super Admin can assign the Super Admin role.',
         );
+    }
+
+    private function ensureDesignationHasCapacity(?int $designationId, ?User $user = null): void
+    {
+        if ($designationId === null || $user?->designation_id === $designationId) {
+            return;
+        }
+
+        $designation = Designation::query()
+            ->withCount('users')
+            ->find($designationId);
+
+        if ($designation?->max_users === null) {
+            return;
+        }
+
+        if ($designation->users_count >= $designation->max_users) {
+            throw ValidationException::withMessages([
+                'designation_id' => "The {$designation->name} designation has reached its assignment limit.",
+            ]);
+        }
     }
 }

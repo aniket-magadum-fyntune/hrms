@@ -1,7 +1,5 @@
 <?php
 
-namespace Tests\Feature;
-
 use App\Access\AccessRegistry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -9,130 +7,120 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Tests\TestCase;
 
-class AdminAccessProtectionTest extends TestCase
-{
-    use RefreshDatabase;
+uses(RefreshDatabase::class);
 
-    public function test_super_admin_role_cannot_be_updated_or_deleted_from_the_portal(): void
-    {
-        Artisan::call('app:setup', ['--force' => true]);
+test('super admin role cannot be updated or deleted from the portal', function (): void {
+    Artisan::call('app:setup', ['--force' => true]);
 
-        $superAdmin = User::query()->where('email', 'super@example.com')->firstOrFail();
-        $superAdminRole = Role::query()->where('name', AccessRegistry::SUPER_ADMIN_ROLE)->firstOrFail();
+    $superAdmin = User::query()->where('email', 'super@example.com')->firstOrFail();
+    $superAdminRole = Role::query()->where('name', AccessRegistry::SUPER_ADMIN_ROLE)->firstOrFail();
 
-        $this->actingAs($superAdmin)
-            ->put(route('roles.update', $superAdminRole), [
-                'name' => AccessRegistry::SUPER_ADMIN_ROLE,
-                'permissions' => [],
-            ])
-            ->assertForbidden();
-
-        $this->actingAs($superAdmin)
-            ->delete(route('roles.destroy', $superAdminRole))
-            ->assertForbidden();
-
-        $this->assertDatabaseHas('roles', [
-            'id' => $superAdminRole->id,
+    $this->actingAs($superAdmin)
+        ->put(route('roles.update', $superAdminRole), [
             'name' => AccessRegistry::SUPER_ADMIN_ROLE,
-        ]);
-    }
+            'permissions' => [],
+        ])
+        ->assertForbidden();
 
-    public function test_admin_role_permissions_can_only_be_changed_by_super_admin(): void
-    {
-        Artisan::call('app:setup', ['--force' => true]);
+    $this->actingAs($superAdmin)
+        ->delete(route('roles.destroy', $superAdminRole))
+        ->assertForbidden();
 
-        $superAdmin = User::query()->where('email', 'super@example.com')->firstOrFail();
-        $admin = User::query()->where('email', 'admin@example.com')->firstOrFail();
-        $adminRole = Role::query()->where('name', AccessRegistry::ADMIN_ROLE)->firstOrFail();
+    $this->assertDatabaseHas('roles', [
+        'id' => $superAdminRole->id,
+        'name' => AccessRegistry::SUPER_ADMIN_ROLE,
+    ]);
+});
 
-        $this->actingAs($admin)
-            ->put(route('roles.update', $adminRole), [
-                'name' => AccessRegistry::ADMIN_ROLE,
-                'permissions' => ['users.view'],
-            ])
-            ->assertForbidden();
+test('admin role permissions can only be changed by super admin', function (): void {
+    Artisan::call('app:setup', ['--force' => true]);
 
-        $this->actingAs($superAdmin)
-            ->put(route('roles.update', $adminRole), [
-                'name' => AccessRegistry::ADMIN_ROLE,
-                'permissions' => ['users.view'],
-            ])
-            ->assertRedirect(route('roles.index'));
+    $superAdmin = User::query()->where('email', 'super@example.com')->firstOrFail();
+    $admin = User::query()->where('email', 'admin@example.com')->firstOrFail();
+    $adminRole = Role::query()->where('name', AccessRegistry::ADMIN_ROLE)->firstOrFail();
 
-        $this->assertSame(['users.view'], $adminRole->refresh()->permissions->pluck('name')->all());
+    $this->actingAs($admin)
+        ->put(route('roles.update', $adminRole), [
+            'name' => AccessRegistry::ADMIN_ROLE,
+            'permissions' => ['users.view'],
+        ])
+        ->assertForbidden();
 
-        $this->actingAs($superAdmin)
-            ->delete(route('roles.destroy', $adminRole))
-            ->assertForbidden();
-    }
+    $this->actingAs($superAdmin)
+        ->put(route('roles.update', $adminRole), [
+            'name' => AccessRegistry::ADMIN_ROLE,
+            'permissions' => ['users.view'],
+        ])
+        ->assertRedirect(route('roles.index'));
 
-    public function test_system_permissions_cannot_be_updated_or_deleted_from_the_portal(): void
-    {
-        Artisan::call('app:setup', ['--force' => true]);
+    $this->assertSame(['users.view'], $adminRole->refresh()->permissions->pluck('name')->all());
 
-        $superAdmin = User::query()->where('email', 'super@example.com')->firstOrFail();
-        $permission = Permission::query()->where('name', 'users.view')->firstOrFail();
+    $this->actingAs($superAdmin)
+        ->delete(route('roles.destroy', $adminRole))
+        ->assertForbidden();
+});
 
-        $this->assertFalse(Route::has('permissions.store'));
-        $this->assertFalse(Route::has('permissions.update'));
-        $this->assertFalse(Route::has('permissions.destroy'));
+test('system permissions cannot be updated or deleted from the portal', function (): void {
+    Artisan::call('app:setup', ['--force' => true]);
 
-        $this->assertDatabaseHas('permissions', [
-            'id' => $permission->id,
-            'name' => 'users.view',
-        ]);
-    }
+    $superAdmin = User::query()->where('email', 'super@example.com')->firstOrFail();
+    $permission = Permission::query()->where('name', 'users.view')->firstOrFail();
 
-    public function test_permissions_page_is_only_visible_to_super_admin(): void
-    {
-        Artisan::call('app:setup', ['--force' => true]);
+    $this->assertFalse(Route::has('permissions.store'));
+    $this->assertFalse(Route::has('permissions.update'));
+    $this->assertFalse(Route::has('permissions.destroy'));
 
-        $superAdmin = User::query()->where('email', 'super@example.com')->firstOrFail();
-        $admin = User::query()->where('email', 'admin@example.com')->firstOrFail();
+    $this->assertDatabaseHas('permissions', [
+        'id' => $permission->id,
+        'name' => 'users.view',
+    ]);
+});
 
-        $this->actingAs($superAdmin)
-            ->get(route('permissions.index'))
-            ->assertOk()
-            ->assertInertia(fn ($page) => $page
-                ->component('permissions/index')
-                ->where('auth.isSuperAdmin', true)
-            );
+test('permissions page is only visible to super admin', function (): void {
+    Artisan::call('app:setup', ['--force' => true]);
 
-        $this->actingAs($admin)
-            ->get(route('permissions.index'))
-            ->assertForbidden();
-    }
+    $superAdmin = User::query()->where('email', 'super@example.com')->firstOrFail();
+    $admin = User::query()->where('email', 'admin@example.com')->firstOrFail();
 
-    public function test_role_management_still_lists_code_defined_permissions_for_assignment(): void
-    {
-        Artisan::call('app:setup', ['--force' => true]);
+    $this->actingAs($superAdmin)
+        ->get(route('permissions.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('permissions/index')
+            ->where('auth.isSuperAdmin', true)
+        );
 
-        $admin = User::query()->where('email', 'admin@example.com')->firstOrFail();
+    $this->actingAs($admin)
+        ->get(route('permissions.index'))
+        ->assertForbidden();
+});
 
-        $this->actingAs($admin)
-            ->get(route('roles.index'))
-            ->assertOk()
-            ->assertInertia(fn ($page) => $page
-                ->component('roles/index')
-                ->has('permissions')
-                ->whereContains('permissions', 'users.view')
-            );
-    }
+test('role management still lists code defined permissions for assignment', function (): void {
+    Artisan::call('app:setup', ['--force' => true]);
 
-    public function test_admin_does_not_see_super_admin_role_in_role_management(): void
-    {
-        Artisan::call('app:setup', ['--force' => true]);
+    $admin = User::query()->where('email', 'admin@example.com')->firstOrFail();
 
-        $admin = User::query()->where('email', 'admin@example.com')->firstOrFail();
+    $this->actingAs($admin)
+        ->get(route('roles.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('roles/index')
+            ->has('permissions')
+            ->whereContains('permissions', 'users.view')
+        );
+});
 
-        $this->actingAs($admin)
-            ->get(route('roles.index'))
-            ->assertOk()
-            ->assertInertia(fn ($page) => $page
-                ->component('roles/index')
-                ->where('roles.0.name', AccessRegistry::ADMIN_ROLE)
-            );
-    }
-}
+test('admin does not see super admin role in role management', function (): void {
+    Artisan::call('app:setup', ['--force' => true]);
+
+    $admin = User::query()->where('email', 'admin@example.com')->firstOrFail();
+
+    $this->actingAs($admin)
+        ->get(route('roles.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('roles/index')
+            ->where('roles.0.name', AccessRegistry::ADMIN_ROLE)
+        );
+});

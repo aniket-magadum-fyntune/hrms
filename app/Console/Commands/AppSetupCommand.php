@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use App\Access\AccessRegistry;
 use App\Access\AccessSynchronizer;
+use App\Models\Department;
+use App\Models\Designation;
 use App\Models\User;
 use App\Notifications\SetupPasswordNotification;
 use Illuminate\Console\Command;
@@ -43,6 +45,38 @@ class AppSetupCommand extends Command
     private const SETTINGS_GROUP = 'application';
 
     private const INSTALLED_AT_SETTING = 'installed_at';
+
+    private const DEFAULT_DEPARTMENTS = [
+        ['name' => 'Administration', 'description' => 'General administration and office coordination.'],
+        ['name' => 'Human Resources', 'description' => 'Recruitment, employee relations, payroll coordination, and HR operations.'],
+        ['name' => 'Finance', 'description' => 'Accounting, budgeting, billing, and financial controls.'],
+        ['name' => 'Operations', 'description' => 'Day-to-day business operations and process execution.'],
+        ['name' => 'Sales', 'description' => 'Revenue generation, client acquisition, and account growth.'],
+        ['name' => 'Marketing', 'description' => 'Brand, campaigns, communications, and demand generation.'],
+        ['name' => 'Customer Support', 'description' => 'Customer assistance, issue handling, and service experience.'],
+        ['name' => 'Engineering', 'description' => 'Product development, technical delivery, and maintenance.'],
+        ['name' => 'Information Technology', 'description' => 'Internal systems, infrastructure, security, and technical support.'],
+        ['name' => 'Legal', 'description' => 'Contracts, compliance, policy, and legal risk management.'],
+        ['name' => 'Procurement', 'description' => 'Purchasing, vendor coordination, and supply management.'],
+    ];
+
+    private const DEFAULT_DESIGNATIONS = [
+        ['name' => 'Chief Executive Officer', 'description' => 'Overall organizational leadership and strategic direction.', 'max_users' => 1],
+        ['name' => 'General Manager', 'description' => 'Business unit or organization-wide management responsibility.', 'max_users' => null],
+        ['name' => 'Department Manager', 'description' => 'Leadership for a department, team, or functional area.', 'max_users' => null],
+        ['name' => 'Team Lead', 'description' => 'Day-to-day team coordination and delivery ownership.', 'max_users' => null],
+        ['name' => 'Human Resources Manager', 'description' => 'HR function ownership and people operations management.', 'max_users' => null],
+        ['name' => 'Human Resources Executive', 'description' => 'Recruitment, employee documentation, and HR operations support.', 'max_users' => null],
+        ['name' => 'Finance Manager', 'description' => 'Financial planning, accounting supervision, and reporting.', 'max_users' => null],
+        ['name' => 'Accountant', 'description' => 'Bookkeeping, accounts, statutory records, and financial transactions.', 'max_users' => null],
+        ['name' => 'Operations Manager', 'description' => 'Operational planning, coordination, and process improvement.', 'max_users' => null],
+        ['name' => 'Sales Manager', 'description' => 'Sales planning, target ownership, and team guidance.', 'max_users' => null],
+        ['name' => 'Sales Executive', 'description' => 'Lead generation, customer meetings, and sales follow-up.', 'max_users' => null],
+        ['name' => 'Marketing Manager', 'description' => 'Marketing strategy, campaigns, and brand communication.', 'max_users' => null],
+        ['name' => 'Software Engineer', 'description' => 'Software design, development, testing, and maintenance.', 'max_users' => null],
+        ['name' => 'System Administrator', 'description' => 'System access, infrastructure, network, and device administration.', 'max_users' => null],
+        ['name' => 'Customer Support Executive', 'description' => 'Customer query handling, ticket updates, and service support.', 'max_users' => null],
+    ];
 
     /**
      * Execute the console command.
@@ -176,6 +210,8 @@ class AppSetupCommand extends Command
     {
         return Schema::hasTable('settings')
             && Schema::hasTable('users')
+            && Schema::hasTable('departments')
+            && Schema::hasTable('designations')
             && Schema::hasTable(config('permission.table_names.permissions'))
             && Schema::hasTable(config('permission.table_names.roles'));
     }
@@ -209,6 +245,8 @@ class AppSetupCommand extends Command
     private function provisionUsers(array $input, array $passwords): array
     {
         return DB::transaction(function () use ($input, $passwords): array {
+            $this->seedOrganizationMasters();
+
             /** @var User $superAdmin */
             $superAdmin = User::query()->create([
                 'name' => $input['super_admin_name'],
@@ -242,6 +280,26 @@ class AppSetupCommand extends Command
                 'admin' => $admin,
             ];
         });
+    }
+
+    private function seedOrganizationMasters(): void
+    {
+        foreach (self::DEFAULT_DEPARTMENTS as $department) {
+            Department::query()->firstOrCreate(
+                ['name' => $department['name']],
+                ['description' => $department['description']],
+            );
+        }
+
+        foreach (self::DEFAULT_DESIGNATIONS as $designation) {
+            Designation::query()->firstOrCreate(
+                ['name' => $designation['name']],
+                [
+                    'description' => $designation['description'],
+                    'max_users' => $designation['max_users'],
+                ],
+            );
+        }
     }
 
     /**

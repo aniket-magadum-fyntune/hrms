@@ -17,33 +17,50 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { AccessUser } from '@/types/admin';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import type { AccessUser, OptionItem } from '@/types/admin';
 
 type UserForm = {
     name: string;
     email: string;
     password: string;
+    department_id: number | null;
+    designation_id: number | null;
     roles: string[];
 };
 
 type UsersIndexProps = {
     users: AccessUser[];
     roles: string[];
+    departments: OptionItem[];
+    designations: OptionItem[];
     currentUserId: number;
 };
 
 function UserDialog({
     user,
     roles,
+    departments,
+    designations,
 }: {
     user?: AccessUser;
     roles: string[];
+    departments: OptionItem[];
+    designations: OptionItem[];
 }) {
     const [open, setOpen] = useState(false);
     const form = useForm<UserForm>({
         name: user?.name ?? '',
         email: user?.email ?? '',
         password: '',
+        department_id: user?.department_id ?? null,
+        designation_id: user?.designation_id ?? null,
         roles: user?.roles ?? [],
     });
 
@@ -149,6 +166,90 @@ function UserDialog({
                         <InputError message={form.errors.password} />
                     </div>
 
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                            <Label
+                                htmlFor={`user-department-${user?.id ?? 'new'}`}
+                            >
+                                Department
+                            </Label>
+                            <Select
+                                value={
+                                    form.data.department_id?.toString() ??
+                                    'none'
+                                }
+                                onValueChange={(value) =>
+                                    form.setData(
+                                        'department_id',
+                                        value === 'none' ? null : Number(value),
+                                    )
+                                }
+                            >
+                                <SelectTrigger
+                                    id={`user-department-${user?.id ?? 'new'}`}
+                                    className="w-full"
+                                >
+                                    <SelectValue placeholder="Select department" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">
+                                        No department
+                                    </SelectItem>
+                                    {departments.map((department) => (
+                                        <SelectItem
+                                            key={department.id}
+                                            value={department.id.toString()}
+                                        >
+                                            {department.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={form.errors.department_id} />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label
+                                htmlFor={`user-designation-${user?.id ?? 'new'}`}
+                            >
+                                Designation
+                            </Label>
+                            <Select
+                                value={
+                                    form.data.designation_id?.toString() ??
+                                    'none'
+                                }
+                                onValueChange={(value) =>
+                                    form.setData(
+                                        'designation_id',
+                                        value === 'none' ? null : Number(value),
+                                    )
+                                }
+                            >
+                                <SelectTrigger
+                                    id={`user-designation-${user?.id ?? 'new'}`}
+                                    className="w-full"
+                                >
+                                    <SelectValue placeholder="Select designation" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">
+                                        No designation
+                                    </SelectItem>
+                                    {designations.map((designation) => (
+                                        <SelectItem
+                                            key={designation.id}
+                                            value={designation.id.toString()}
+                                        >
+                                            {designation.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={form.errors.designation_id} />
+                        </div>
+                    </div>
+
                     <div className="space-y-2">
                         <Label>Roles</Label>
                         <AccessCheckboxGroup
@@ -221,6 +322,8 @@ function DeleteUserDialog({
 export default function UsersIndex({
     users,
     roles,
+    departments,
+    designations,
     currentUserId,
 }: UsersIndexProps) {
     return (
@@ -233,17 +336,27 @@ export default function UsersIndex({
                             Users
                         </h1>
                         <p className="text-sm text-muted-foreground">
-                            Manage accounts and assign roles.
+                            Manage accounts, profiles, and role assignments.
                         </p>
                     </div>
-                    <UserDialog roles={roles} />
+                    <UserDialog
+                        roles={roles}
+                        departments={departments}
+                        designations={designations}
+                    />
                 </div>
 
                 <div className="overflow-x-auto rounded-lg border">
-                    <table className="w-full min-w-[760px] text-sm">
+                    <table className="w-full min-w-[920px] text-sm">
                         <thead className="bg-muted/50 text-left">
                             <tr>
                                 <th className="px-4 py-3 font-medium">User</th>
+                                <th className="px-4 py-3 font-medium">
+                                    Department
+                                </th>
+                                <th className="px-4 py-3 font-medium">
+                                    Designation
+                                </th>
                                 <th className="px-4 py-3 font-medium">Roles</th>
                                 <th className="px-4 py-3 font-medium">
                                     Created
@@ -262,6 +375,12 @@ export default function UsersIndex({
                                             {user.email}
                                         </div>
                                     </td>
+                                    <td className="px-4 py-3 text-muted-foreground">
+                                        {user.department ?? 'Unassigned'}
+                                    </td>
+                                    <td className="px-4 py-3 text-muted-foreground">
+                                        {user.designation ?? 'Unassigned'}
+                                    </td>
                                     <td className="px-4 py-3">
                                         <AccessBadges
                                             values={user.roles}
@@ -276,6 +395,8 @@ export default function UsersIndex({
                                             <UserDialog
                                                 user={user}
                                                 roles={roles}
+                                                departments={departments}
+                                                designations={designations}
                                             />
                                             <DeleteUserDialog
                                                 user={user}
@@ -290,7 +411,7 @@ export default function UsersIndex({
                             {users.length === 0 && (
                                 <tr>
                                     <td
-                                        colSpan={5}
+                                        colSpan={6}
                                         className="px-4 py-8 text-center text-muted-foreground"
                                     >
                                         No users yet.

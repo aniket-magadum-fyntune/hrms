@@ -1,6 +1,8 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
+    BriefcaseBusiness,
+    Building2,
     FolderGit2,
     KeyRound,
     LayoutGrid,
@@ -38,6 +40,16 @@ const mainNavItems: NavItem[] = [
         title: 'Roles',
         href: '/roles',
         icon: ShieldCheck,
+    },
+    {
+        title: 'Departments',
+        href: '/departments',
+        icon: Building2,
+    },
+    {
+        title: 'Designations',
+        href: '/designations',
+        icon: BriefcaseBusiness,
     },
     {
         title: 'Permissions',

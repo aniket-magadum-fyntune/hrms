@@ -22,6 +22,14 @@ final class AccessRegistry
             'roles.create',
             'roles.update',
             'roles.delete',
+            'departments.view',
+            'departments.create',
+            'departments.update',
+            'departments.delete',
+            'designations.view',
+            'designations.create',
+            'designations.update',
+            'designations.delete',
         ];
     }
 
