@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, Search } from 'lucide-react';
+import { BookOpen, LifeBuoy, Search } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -21,13 +21,13 @@ import type { Auth, NavItem } from '@/types';
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: FolderGit2,
+        title: 'Help center',
+        href: '/help',
+        icon: LifeBuoy,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
+        title: 'Updates',
+        href: '/updates',
         icon: BookOpen,
     },
 ];

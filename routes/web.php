@@ -11,6 +11,8 @@ Route::inertia('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::inertia('help', 'help')->name('help');
+    Route::inertia('updates', 'updates')->name('updates');
 
     Route::get('users', [UserController::class, 'index'])
         ->name('users.index')

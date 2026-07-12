@@ -8,6 +8,7 @@ use App\Models\Department;
 use App\Models\Designation;
 use App\Models\User;
 use App\Notifications\SetupPasswordNotification;
+use App\Support\OrganizationSettings;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -246,6 +247,7 @@ class AppSetupCommand extends Command
     {
         return DB::transaction(function () use ($input, $passwords): array {
             $this->seedOrganizationMasters();
+            OrganizationSettings::seedDefaults();
 
             /** @var User $superAdmin */
             $superAdmin = User::query()->create([

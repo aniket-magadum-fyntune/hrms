@@ -5,6 +5,7 @@ use App\Models\Department;
 use App\Models\Designation;
 use App\Models\User;
 use App\Notifications\SetupPasswordNotification;
+use App\Support\OrganizationSettings;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -96,6 +97,17 @@ test('setup creates default organization masters', function (): void {
             'name' => $designation,
         ]);
     }
+});
+
+test('setup creates default organization settings', function (): void {
+    $this->artisan('app:setup --force')
+        ->assertExitCode(0);
+
+    $settings = OrganizationSettings::all();
+
+    $this->assertSame(config('app.name'), $settings['name']);
+    $this->assertSame('#111827', $settings['primary_color']);
+    $this->assertSame('#111827', $settings['sidebar_color']);
 });
 
 test('setup uses custom options', function (): void {

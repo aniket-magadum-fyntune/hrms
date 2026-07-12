@@ -15,6 +15,17 @@ export type Auth = {
     isSuperAdmin: boolean;
 };
 
+export type Organization = {
+    name: string;
+    legal_name: string | null;
+    email: string | null;
+    phone: string | null;
+    website: string | null;
+    address: string | null;
+    primary_color: string;
+    sidebar_color: string;
+};
+
 /* @chisel-passkeys */
 export type Passkey = {
     id: number;

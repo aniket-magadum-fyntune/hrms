@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Access\AccessRegistry;
+use App\Support\OrganizationSettings;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -39,6 +40,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'organization' => OrganizationSettings::all(),
             'auth' => [
                 'user' => $request->user(),
                 'isSuperAdmin' => $request->user()?->hasRole(AccessRegistry::SUPER_ADMIN_ROLE) ?? false,

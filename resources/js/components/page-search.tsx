@@ -136,7 +136,7 @@ export function PageSearch({ trigger }: { trigger?: ReactElement }) {
             }}
         >
             <DialogTrigger asChild>{triggerWithType}</DialogTrigger>
-            <DialogContent className="gap-0 p-0 sm:max-w-lg">
+            <DialogContent className="gap-0 p-0 sm:max-w-lg" showCloseButton={false}>
                 <DialogHeader className="sr-only">
                     <DialogTitle>Search pages</DialogTitle>
                     <DialogDescription>
