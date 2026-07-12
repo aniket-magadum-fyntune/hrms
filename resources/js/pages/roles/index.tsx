@@ -243,6 +243,10 @@ export default function RolesIndex({ roles, permissions }: RolesIndexProps) {
 RolesIndex.layout = {
     breadcrumbs: [
         {
+            title: 'Access',
+            href: '/roles',
+        },
+        {
             title: 'Roles',
             href: '/roles',
         },

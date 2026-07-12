@@ -1,18 +1,11 @@
 import { Link, usePage } from '@inertiajs/react';
-import {
-    BookOpen,
-    BriefcaseBusiness,
-    Building2,
-    FolderGit2,
-    KeyRound,
-    LayoutGrid,
-    ShieldCheck,
-    Users,
-} from 'lucide-react';
+import { BookOpen, FolderGit2, Search } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
+import { PageSearch } from '@/components/page-search';
+import { Button } from '@/components/ui/button';
 import {
     Sidebar,
     SidebarContent,
@@ -22,41 +15,9 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { dashboardNavItem, visibleNavGroups } from '@/lib/navigation';
 import { dashboard } from '@/routes';
 import type { Auth, NavItem } from '@/types';
-
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Users',
-        href: '/users',
-        icon: Users,
-    },
-    {
-        title: 'Roles',
-        href: '/roles',
-        icon: ShieldCheck,
-    },
-    {
-        title: 'Departments',
-        href: '/departments',
-        icon: Building2,
-    },
-    {
-        title: 'Designations',
-        href: '/designations',
-        icon: BriefcaseBusiness,
-    },
-    {
-        title: 'Permissions',
-        href: '/permissions',
-        icon: KeyRound,
-    },
-];
 
 const footerNavItems: NavItem[] = [
     {
@@ -73,9 +34,7 @@ const footerNavItems: NavItem[] = [
 
 export function AppSidebar() {
     const { auth } = usePage<{ auth: Auth }>().props;
-    const navItems = auth.isSuperAdmin
-        ? mainNavItems
-        : mainNavItems.filter((item) => item.href !== '/permissions');
+    const navGroups = visibleNavGroups(auth.isSuperAdmin);
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -89,10 +48,26 @@ export function AppSidebar() {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
+                <PageSearch
+                    trigger={
+                        <Button
+                            variant="ghost"
+                            className="h-8 justify-start gap-2 px-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
+                        >
+                            <Search />
+                            <span className="group-data-[collapsible=icon]:hidden">
+                                Search
+                            </span>
+                            <kbd className="ml-auto rounded border bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground group-data-[collapsible=icon]:hidden">
+                                /
+                            </kbd>
+                        </Button>
+                    }
+                />
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={navItems} />
+                <NavMain items={[dashboardNavItem]} groups={navGroups} />
             </SidebarContent>
 
             <SidebarFooter>

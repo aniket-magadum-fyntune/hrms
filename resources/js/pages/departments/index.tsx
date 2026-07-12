@@ -249,6 +249,10 @@ export default function DepartmentsIndex({
 DepartmentsIndex.layout = {
     breadcrumbs: [
         {
+            title: 'People',
+            href: '/users',
+        },
+        {
             title: 'Departments',
             href: '/departments',
         },

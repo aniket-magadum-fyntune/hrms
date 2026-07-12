@@ -275,6 +275,10 @@ export default function DesignationsIndex({
 DesignationsIndex.layout = {
     breadcrumbs: [
         {
+            title: 'People',
+            href: '/users',
+        },
+        {
             title: 'Designations',
             href: '/designations',
         },

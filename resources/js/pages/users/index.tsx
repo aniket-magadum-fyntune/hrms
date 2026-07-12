@@ -429,6 +429,10 @@ export default function UsersIndex({
 UsersIndex.layout = {
     breadcrumbs: [
         {
+            title: 'People',
+            href: '/users',
+        },
+        {
             title: 'Users',
             href: '/users',
         },

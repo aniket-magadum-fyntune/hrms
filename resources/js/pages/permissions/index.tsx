@@ -70,6 +70,10 @@ export default function PermissionsIndex({
 PermissionsIndex.layout = {
     breadcrumbs: [
         {
+            title: 'Access',
+            href: '/roles',
+        },
+        {
             title: 'Permissions',
             href: '/permissions',
         },
