@@ -14,61 +14,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('help', 'help')->name('help');
     Route::inertia('updates', 'updates')->name('updates');
 
-    Route::get('users', [UserController::class, 'index'])
-        ->name('users.index')
-        ->middleware('permission:users.view');
-    Route::post('users', [UserController::class, 'store'])
-        ->name('users.store')
-        ->middleware('permission:users.create');
-    Route::match(['put', 'patch'], 'users/{user}', [UserController::class, 'update'])
-        ->name('users.update')
-        ->middleware('permission:users.update');
-    Route::delete('users/{user}', [UserController::class, 'destroy'])
-        ->name('users.destroy')
-        ->middleware('permission:users.delete');
+    Route::get('users', [UserController::class, 'index'])->name('users.index');
+    Route::post('users', [UserController::class, 'store'])->name('users.store');
+    Route::match(['put', 'patch'], 'users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
-    Route::get('roles', [RoleController::class, 'index'])
-        ->name('roles.index')
-        ->middleware('permission:roles.view');
-    Route::post('roles', [RoleController::class, 'store'])
-        ->name('roles.store')
-        ->middleware('permission:roles.create');
-    Route::match(['put', 'patch'], 'roles/{role}', [RoleController::class, 'update'])
-        ->name('roles.update')
-        ->middleware('permission:roles.update');
-    Route::delete('roles/{role}', [RoleController::class, 'destroy'])
-        ->name('roles.destroy')
-        ->middleware('permission:roles.delete');
+    Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
+    Route::post('roles', [RoleController::class, 'store'])->name('roles.store');
+    Route::match(['put', 'patch'], 'roles/{role}', [RoleController::class, 'update'])->name('roles.update');
+    Route::delete('roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
 
-    Route::get('departments', [DepartmentController::class, 'index'])
-        ->name('departments.index')
-        ->middleware('permission:departments.view');
-    Route::post('departments', [DepartmentController::class, 'store'])
-        ->name('departments.store')
-        ->middleware('permission:departments.create');
-    Route::match(['put', 'patch'], 'departments/{department}', [DepartmentController::class, 'update'])
-        ->name('departments.update')
-        ->middleware('permission:departments.update');
-    Route::delete('departments/{department}', [DepartmentController::class, 'destroy'])
-        ->name('departments.destroy')
-        ->middleware('permission:departments.delete');
+    Route::get('departments', [DepartmentController::class, 'index'])->name('departments.index');
+    Route::post('departments', [DepartmentController::class, 'store'])->name('departments.store');
+    Route::match(['put', 'patch'], 'departments/{department}', [DepartmentController::class, 'update'])->name('departments.update');
+    Route::delete('departments/{department}', [DepartmentController::class, 'destroy'])->name('departments.destroy');
 
-    Route::get('designations', [DesignationController::class, 'index'])
-        ->name('designations.index')
-        ->middleware('permission:designations.view');
-    Route::post('designations', [DesignationController::class, 'store'])
-        ->name('designations.store')
-        ->middleware('permission:designations.create');
-    Route::match(['put', 'patch'], 'designations/{designation}', [DesignationController::class, 'update'])
-        ->name('designations.update')
-        ->middleware('permission:designations.update');
-    Route::delete('designations/{designation}', [DesignationController::class, 'destroy'])
-        ->name('designations.destroy')
-        ->middleware('permission:designations.delete');
+    Route::get('designations', [DesignationController::class, 'index'])->name('designations.index');
+    Route::post('designations', [DesignationController::class, 'store'])->name('designations.store');
+    Route::match(['put', 'patch'], 'designations/{designation}', [DesignationController::class, 'update'])->name('designations.update');
+    Route::delete('designations/{designation}', [DesignationController::class, 'destroy'])->name('designations.destroy');
 
-    Route::get('permissions', [PermissionController::class, 'index'])
-        ->name('permissions.index')
-        ->middleware('role:Super Admin');
+    Route::get('permissions', [PermissionController::class, 'index'])->name('permissions.index');
 });
 
 require __DIR__.'/settings.php';

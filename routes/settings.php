@@ -26,12 +26,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::inertia('settings/appearance', 'settings/appearance')->name('appearance.edit');
 
-    Route::get('settings/organization', [OrganizationController::class, 'edit'])
-        ->middleware('role:Super Admin')
-        ->name('organization.edit');
-    Route::put('settings/organization', [OrganizationController::class, 'update'])
-        ->middleware('role:Super Admin')
-        ->name('organization.update');
+    Route::get('settings/organization', [OrganizationController::class, 'edit'])->name('organization.edit');
+    Route::put('settings/organization', [OrganizationController::class, 'update'])->name('organization.update');
 });
 
 Route::get('.well-known/passkey-endpoints', function () {

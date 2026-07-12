@@ -106,8 +106,8 @@ test('setup creates default organization settings', function (): void {
     $settings = OrganizationSettings::all();
 
     $this->assertSame(config('app.name'), $settings['name']);
-    $this->assertSame('#111827', $settings['primary_color']);
-    $this->assertSame('#111827', $settings['sidebar_color']);
+    $this->assertSame('#18181b', $settings['primary_color']);
+    $this->assertSame('#fafafa', $settings['sidebar_color']);
 });
 
 test('setup uses custom options', function (): void {

@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Access\AccessRegistry;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\DestroyRoleRequest;
+use App\Http\Requests\Admin\IndexRolesRequest;
+use App\Http\Requests\Admin\StoreRoleRequest;
+use App\Http\Requests\Admin\UpdateRoleRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Permission;
@@ -14,7 +16,7 @@ use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
-    public function index(): Response
+    public function index(IndexRolesRequest $request): Response
     {
         $isSuperAdmin = request()->user()?->hasRole(AccessRegistry::SUPER_ADMIN_ROLE) ?? false;
 
@@ -42,13 +44,9 @@ class RoleController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreRoleRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::notIn(array_keys(AccessRegistry::roles())), Rule::unique('roles', 'name')->where('guard_name', 'web')],
-            'permissions' => ['array'],
-            'permissions.*' => ['string', Rule::exists('permissions', 'name')],
-        ]);
+        $validated = $request->validated();
 
         $role = Role::query()->create([
             'name' => $validated['name'],
@@ -60,18 +58,14 @@ class RoleController extends Controller
         return to_route('roles.index');
     }
 
-    public function update(Request $request, Role $role): RedirectResponse
+    public function update(UpdateRoleRequest $request, Role $role): RedirectResponse
     {
         $isSuperAdmin = $request->user()?->hasRole(AccessRegistry::SUPER_ADMIN_ROLE) ?? false;
 
         abort_if($role->name === AccessRegistry::SUPER_ADMIN_ROLE, 403, 'The Super Admin role is protected.');
         abort_if(AccessRegistry::isControlledRole($role->name) && ! $isSuperAdmin, 403, 'Controlled roles can only be updated by Super Admin.');
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', AccessRegistry::isSystemRole($role->name) ? Rule::in([$role->name]) : Rule::notIn(array_keys(AccessRegistry::roles())), Rule::unique('roles', 'name')->where('guard_name', 'web')->ignore($role->id)],
-            'permissions' => ['array'],
-            'permissions.*' => ['string', Rule::exists('permissions', 'name')],
-        ]);
+        $validated = $request->validated();
 
         $role->update(['name' => $validated['name']]);
         $role->syncPermissions($validated['permissions'] ?? []);
@@ -79,7 +73,7 @@ class RoleController extends Controller
         return to_route('roles.index');
     }
 
-    public function destroy(Role $role): RedirectResponse
+    public function destroy(DestroyRoleRequest $request, Role $role): RedirectResponse
     {
         abort_if(AccessRegistry::isProtectedRole($role->name), 403, 'Protected roles cannot be deleted.');
 

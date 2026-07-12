@@ -136,7 +136,7 @@ export function PageSearch({ trigger }: { trigger?: ReactElement }) {
             }}
         >
             <DialogTrigger asChild>{triggerWithType}</DialogTrigger>
-            <DialogContent className="gap-0 p-0 sm:max-w-lg" showCloseButton={false}>
+            <DialogContent className="gap-0 p-0 sm:max-w-lg">
                 <DialogHeader className="sr-only">
                     <DialogTitle>Search pages</DialogTitle>
                     <DialogDescription>
@@ -156,7 +156,7 @@ export function PageSearch({ trigger }: { trigger?: ReactElement }) {
                         autoFocus
                         className="h-8 border-0 px-0 shadow-none focus-visible:ring-0"
                     />
-                    <kbd className="rounded border bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                    <kbd className="mr-8 rounded border bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
                         Esc
                     </kbd>
                 </div>

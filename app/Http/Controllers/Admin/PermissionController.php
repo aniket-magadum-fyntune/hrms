@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\IndexPermissionsRequest;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Permission;
 
 class PermissionController extends Controller
 {
-    public function index(): Response
+    public function index(IndexPermissionsRequest $request): Response
     {
         $permissions = Permission::query()
             ->withCount(['roles', 'users'])

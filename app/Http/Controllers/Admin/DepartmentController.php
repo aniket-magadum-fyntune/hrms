@@ -3,16 +3,18 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\DestroyDepartmentRequest;
+use App\Http\Requests\Admin\IndexDepartmentsRequest;
+use App\Http\Requests\Admin\StoreDepartmentRequest;
+use App\Http\Requests\Admin\UpdateDepartmentRequest;
 use App\Models\Department;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DepartmentController extends Controller
 {
-    public function index(): Response
+    public function index(IndexDepartmentsRequest $request): Response
     {
         $departments = Department::query()
             ->withCount('users')
@@ -30,31 +32,21 @@ class DepartmentController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreDepartmentRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('departments', 'name')],
-            'description' => ['nullable', 'string', 'max:1000'],
-        ]);
-
-        Department::query()->create($validated);
+        Department::query()->create($request->validated());
 
         return to_route('departments.index');
     }
 
-    public function update(Request $request, Department $department): RedirectResponse
+    public function update(UpdateDepartmentRequest $request, Department $department): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('departments', 'name')->ignore($department->id)],
-            'description' => ['nullable', 'string', 'max:1000'],
-        ]);
-
-        $department->update($validated);
+        $department->update($request->validated());
 
         return to_route('departments.index');
     }
 
-    public function destroy(Department $department): RedirectResponse
+    public function destroy(DestroyDepartmentRequest $request, Department $department): RedirectResponse
     {
         $department->delete();
 

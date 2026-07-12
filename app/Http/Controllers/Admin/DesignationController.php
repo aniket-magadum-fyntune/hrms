@@ -3,16 +3,18 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\DestroyDesignationRequest;
+use App\Http\Requests\Admin\IndexDesignationsRequest;
+use App\Http\Requests\Admin\StoreDesignationRequest;
+use App\Http\Requests\Admin\UpdateDesignationRequest;
 use App\Models\Designation;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DesignationController extends Controller
 {
-    public function index(): Response
+    public function index(IndexDesignationsRequest $request): Response
     {
         $designations = Designation::query()
             ->withCount('users')
@@ -31,26 +33,16 @@ class DesignationController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreDesignationRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('designations', 'name')],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'max_users' => ['nullable', 'integer', 'min:1', 'max:1000000'],
-        ]);
-
-        Designation::query()->create($validated);
+        Designation::query()->create($request->validated());
 
         return to_route('designations.index');
     }
 
-    public function update(Request $request, Designation $designation): RedirectResponse
+    public function update(UpdateDesignationRequest $request, Designation $designation): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('designations', 'name')->ignore($designation->id)],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'max_users' => ['nullable', 'integer', 'min:1', 'max:1000000'],
-        ]);
+        $validated = $request->validated();
 
         $currentUsersCount = $designation->users()->count();
 
@@ -65,7 +57,7 @@ class DesignationController extends Controller
         return to_route('designations.index');
     }
 
-    public function destroy(Designation $designation): RedirectResponse
+    public function destroy(DestroyDesignationRequest $request, Designation $designation): RedirectResponse
     {
         $designation->delete();
 

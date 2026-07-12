@@ -4,13 +4,16 @@ namespace App\Http\Controllers\Admin;
 
 use App\Access\AccessRegistry;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\DestroyUserRequest;
+use App\Http\Requests\Admin\IndexUsersRequest;
+use App\Http\Requests\Admin\StoreUserRequest;
+use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\Department;
 use App\Models\Designation;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,7 +21,7 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    public function index(): Response
+    public function index(IndexUsersRequest $request): Response
     {
         $isSuperAdmin = Auth::user()?->hasRole(AccessRegistry::SUPER_ADMIN_ROLE) ?? false;
 
@@ -55,17 +58,9 @@ class UserController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreUserRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8'],
-            'department_id' => ['nullable', 'integer', Rule::exists('departments', 'id')],
-            'designation_id' => ['nullable', 'integer', Rule::exists('designations', 'id')],
-            'roles' => ['array'],
-            'roles.*' => ['string', Rule::exists('roles', 'name')],
-        ]);
+        $validated = $request->validated();
 
         $this->authorizeRoleAssignment($request, $validated['roles'] ?? []);
         $this->ensureDesignationHasCapacity($validated['designation_id'] ?? null);
@@ -83,19 +78,11 @@ class UserController extends Controller
         return to_route('users.index');
     }
 
-    public function update(Request $request, User $user): RedirectResponse
+    public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
         abort_if($user->hasRole(AccessRegistry::SUPER_ADMIN_ROLE) && ! ($request->user()?->hasRole(AccessRegistry::SUPER_ADMIN_ROLE) ?? false), 403, 'Super Admin users are protected.');
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-            'password' => ['nullable', 'string', 'min:8'],
-            'department_id' => ['nullable', 'integer', Rule::exists('departments', 'id')],
-            'designation_id' => ['nullable', 'integer', Rule::exists('designations', 'id')],
-            'roles' => ['array'],
-            'roles.*' => ['string', Rule::exists('roles', 'name')],
-        ]);
+        $validated = $request->validated();
 
         $this->authorizeRoleAssignment($request, $validated['roles'] ?? []);
         $this->ensureDesignationHasCapacity($validated['designation_id'] ?? null, $user);
@@ -117,7 +104,7 @@ class UserController extends Controller
         return to_route('users.index');
     }
 
-    public function destroy(User $user): RedirectResponse
+    public function destroy(DestroyUserRequest $request, User $user): RedirectResponse
     {
         abort_if($user->is(Auth::user()), 422, 'You cannot delete your own account.');
         abort_if($user->hasRole(AccessRegistry::SUPER_ADMIN_ROLE) && ! (Auth::user()?->hasRole(AccessRegistry::SUPER_ADMIN_ROLE) ?? false), 403, 'Super Admin users are protected.');

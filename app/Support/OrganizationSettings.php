@@ -20,8 +20,8 @@ class OrganizationSettings
             'phone' => null,
             'website' => null,
             'address' => null,
-            'primary_color' => '#111827',
-            'sidebar_color' => '#111827',
+            'primary_color' => '#18181b',
+            'sidebar_color' => '#fafafa',
         ];
     }
 
@@ -77,8 +77,8 @@ class OrganizationSettings
     public static function themeVariables(?array $settings = null): array
     {
         $settings ??= self::all();
-        $primaryColor = self::hexColor($settings['primary_color'] ?? null, '#111827');
-        $sidebarColor = self::hexColor($settings['sidebar_color'] ?? null, '#111827');
+        $primaryColor = self::hexColor($settings['primary_color'] ?? null, '#18181b');
+        $sidebarColor = self::hexColor($settings['sidebar_color'] ?? null, '#fafafa');
         $primaryForeground = self::contrastColor($primaryColor);
         $sidebarForeground = self::contrastColor($sidebarColor);
 
