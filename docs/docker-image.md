@@ -15,6 +15,67 @@ docker tag hrms:latest registry.example.com/hrms:2026-07-11
 docker push registry.example.com/hrms:2026-07-11
 ```
 
+## Running Locally
+
+Use these three steps to build and run the image on your local machine against a local MySQL database.
+
+**Step 1 — Build the image:**
+
+```sh
+docker build -t hrms:latest .
+```
+
+**Step 2 — Migrate and seed the database (run once):**
+
+Replace `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, and `APP_KEY` with your real values. If MySQL is running on the Mac host, use `host.docker.internal` as `DB_HOST`.
+
+```sh
+docker run --rm -it \
+  --entrypoint sh \
+  -e APP_KEY=base64:REPLACE_WITH_YOUR_KEY \
+  -e DB_HOST=host.docker.internal \
+  -e DB_DATABASE=hrms \
+  -e DB_USERNAME=root \
+  -e DB_PASSWORD= \
+  -e CACHE_STORE=database \
+  -e SESSION_DRIVER=database \
+  -e QUEUE_CONNECTION=database \
+  hrms:latest \
+  -c 'php artisan migrate --force && php artisan app:setup --force \
+    --super-admin-email=super.demo@example.com \
+    --super-admin-password=Secret123! \
+    --admin-email=admin.demo@example.com \
+    --admin-password=Secret123!'
+```
+
+**Step 3 — Start the server:**
+
+```sh
+docker run -d \
+  --name hrms \
+  -p 80:80 \
+  -e APP_KEY=base64:REPLACE_WITH_YOUR_KEY \
+  -e APP_URL=http://localhost \
+  -e DB_HOST=host.docker.internal \
+  -e DB_DATABASE=hrms \
+  -e DB_USERNAME=root \
+  -e DB_PASSWORD= \
+  -e CACHE_STORE=database \
+  -e SESSION_DRIVER=database \
+  -e QUEUE_CONNECTION=database \
+  hrms:latest
+```
+
+The app is now available at **http://localhost**.
+
+To stop the server: `docker stop hrms`. To restart it without re-running steps 1 and 2: `docker start hrms`.
+
+To generate a valid `APP_KEY`:
+
+```sh
+docker run --rm --entrypoint sh hrms:latest -c 'php artisan key:generate --show'
+```
+
 ## Required Runtime Environment
 
 Each provisioned instance must provide its own environment variables:

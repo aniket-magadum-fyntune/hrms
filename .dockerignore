@@ -18,3 +18,10 @@ yarn-error.log
 Dockerfile
 docker-compose.yml
 docker-compose.yaml
+tests/
+docs/
+phpunit.xml
+phpstan.neon
+pint.json
+eslint.config.js
+pnpm-workspace.yaml
