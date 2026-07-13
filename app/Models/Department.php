@@ -17,8 +17,8 @@ class Department extends Model
     /**
      * @return HasMany<User, $this>
      */
-    public function users(): HasMany
+    public function employees(): HasMany
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(Employee::class);
     }
 }

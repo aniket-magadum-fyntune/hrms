@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Department;
+use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -60,7 +61,7 @@ test('department index includes user counts', function (): void {
 
     $admin = User::query()->where('email', 'admin@example.com')->firstOrFail();
     $department = Department::factory()->create(['name' => 'A Quality Assurance']);
-    User::factory()->count(2)->create(['department_id' => $department->id]);
+    Employee::factory()->count(2)->create(['department_id' => $department->id]);
 
     $this->actingAs($admin)
         ->get(route('departments.index'))
@@ -77,11 +78,11 @@ test('deleting department clears user assignment', function (): void {
 
     $admin = User::query()->where('email', 'admin@example.com')->firstOrFail();
     $department = Department::factory()->create(['name' => 'Quality Assurance']);
-    $user = User::factory()->create(['department_id' => $department->id]);
+    $employee = Employee::factory()->create(['department_id' => $department->id]);
 
     $this->actingAs($admin)
         ->delete(route('departments.destroy', $department))
         ->assertRedirect(route('departments.index'));
 
-    $this->assertNull($user->refresh()->department_id);
+    $this->assertNull($employee->refresh()->department_id);
 });

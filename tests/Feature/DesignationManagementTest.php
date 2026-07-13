@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Designation;
+use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -54,7 +55,7 @@ test('designation max users cannot be lower than assigned users', function (): v
         'name' => 'Product Designer',
         'max_users' => null,
     ]);
-    User::factory()->count(2)->create(['designation_id' => $designation->id]);
+    Employee::factory()->count(2)->create(['designation_id' => $designation->id]);
 
     $this->actingAs($admin)
         ->put(route('designations.update', $designation), [
@@ -82,7 +83,7 @@ test('designation index includes user counts', function (): void {
 
     $admin = User::query()->where('email', 'admin@example.com')->firstOrFail();
     $designation = Designation::factory()->create(['name' => 'A Product Designer']);
-    User::factory()->count(2)->create(['designation_id' => $designation->id]);
+    Employee::factory()->count(2)->create(['designation_id' => $designation->id]);
 
     $this->actingAs($admin)
         ->get(route('designations.index'))
@@ -99,11 +100,11 @@ test('deleting designation clears user assignment', function (): void {
 
     $admin = User::query()->where('email', 'admin@example.com')->firstOrFail();
     $designation = Designation::factory()->create(['name' => 'Product Designer']);
-    $user = User::factory()->create(['designation_id' => $designation->id]);
+    $employee = Employee::factory()->create(['designation_id' => $designation->id]);
 
     $this->actingAs($admin)
         ->delete(route('designations.destroy', $designation))
         ->assertRedirect(route('designations.index'));
 
-    $this->assertNull($user->refresh()->designation_id);
+    $this->assertNull($employee->refresh()->designation_id);
 });

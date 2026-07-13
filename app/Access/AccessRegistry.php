@@ -8,6 +8,8 @@ final class AccessRegistry
 
     public const ADMIN_ROLE = 'Admin';
 
+    public const EMPLOYEE_ROLE = 'Employee';
+
     /**
      * @return list<string>
      */
@@ -18,6 +20,10 @@ final class AccessRegistry
             'users.create',
             'users.update',
             'users.delete',
+            'employees.view',
+            'employees.create',
+            'employees.update',
+            'employees.delete',
             'roles.view',
             'roles.create',
             'roles.update',
@@ -30,6 +36,8 @@ final class AccessRegistry
             'designations.create',
             'designations.update',
             'designations.delete',
+            'employee.profile.view',
+            'employee.profile.update',
         ];
     }
 
@@ -48,6 +56,14 @@ final class AccessRegistry
                 'controlled' => true,
                 'protected' => true,
                 'initial_permissions' => self::permissions(),
+            ],
+            self::EMPLOYEE_ROLE => [
+                'controlled' => true,
+                'protected' => true,
+                'initial_permissions' => [
+                    'employee.profile.view',
+                    'employee.profile.update',
+                ],
             ],
         ];
     }
