@@ -27,7 +27,7 @@ class Designation extends Model
     }
 
     /**
-     * @return HasMany<User, $this>
+     * @return HasMany<Employee, $this>
      */
     public function employees(): HasMany
     {

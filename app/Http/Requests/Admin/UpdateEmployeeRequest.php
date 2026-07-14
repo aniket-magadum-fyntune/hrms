@@ -22,11 +22,12 @@ class UpdateEmployeeRequest extends FormRequest
     public function rules(): array
     {
         $employee = $this->route('employee');
+        $employeeId = $employee instanceof Employee ? $employee->id : null;
 
         return [
-            'employee_code' => ['required', 'string', 'max:255', Rule::unique('employees', 'employee_code')->ignore($employee?->id)],
+            'employee_code' => ['required', 'string', 'max:255', Rule::unique('employees', 'employee_code')->ignore($employeeId)],
             'name' => ['required', 'string', 'max:255'],
-            'work_email' => ['nullable', 'string', 'lowercase', 'email', 'max:255', Rule::unique('employees', 'work_email')->ignore($employee?->id)],
+            'work_email' => ['nullable', 'string', 'lowercase', 'email', 'max:255', Rule::unique('employees', 'work_email')->ignore($employeeId)],
             'create_login' => ['boolean'],
             'department_id' => ['nullable', 'integer', Rule::exists('departments', 'id')],
             'designation_id' => ['nullable', 'integer', Rule::exists('designations', 'id')],
@@ -36,6 +37,9 @@ class UpdateEmployeeRequest extends FormRequest
         ];
     }
 
+    /**
+     * @return array<int, callable(Validator): void>
+     */
     public function after(): array
     {
         return [

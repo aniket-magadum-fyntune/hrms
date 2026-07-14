@@ -42,21 +42,21 @@ class EmployeeFactory extends Factory
                 'userable_id' => $employee->id,
             ])->save();
         })->state(fn (array $attributes) => [
-            'name' => $user?->name ?? $attributes['name'],
+            'name' => $user instanceof User ? $user->name : $attributes['name'],
         ]);
     }
 
     public function withDepartment(?Department $department = null): static
     {
         return $this->state(fn () => [
-            'department_id' => $department?->id ?? Department::factory(),
+            'department_id' => $department instanceof Department ? $department->id : Department::factory(),
         ]);
     }
 
     public function withDesignation(?Designation $designation = null): static
     {
         return $this->state(fn () => [
-            'designation_id' => $designation?->id ?? Designation::factory(),
+            'designation_id' => $designation instanceof Designation ? $designation->id : Designation::factory(),
         ]);
     }
 }

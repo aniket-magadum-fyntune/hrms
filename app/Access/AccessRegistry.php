@@ -36,8 +36,6 @@ final class AccessRegistry
             'designations.create',
             'designations.update',
             'designations.delete',
-            'employee.profile.view',
-            'employee.profile.update',
         ];
     }
 
@@ -60,10 +58,7 @@ final class AccessRegistry
             self::EMPLOYEE_ROLE => [
                 'controlled' => true,
                 'protected' => true,
-                'initial_permissions' => [
-                    'employee.profile.view',
-                    'employee.profile.update',
-                ],
+                'initial_permissions' => [],
             ],
         ];
     }

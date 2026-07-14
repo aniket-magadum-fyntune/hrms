@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Designation;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,9 +19,10 @@ class UpdateDesignationRequest extends FormRequest
     public function rules(): array
     {
         $designation = $this->route('designation');
+        $designationId = $designation instanceof Designation ? $designation->id : null;
 
         return [
-            'name' => ['required', 'string', 'max:255', Rule::unique('designations', 'name')->ignore($designation?->id)],
+            'name' => ['required', 'string', 'max:255', Rule::unique('designations', 'name')->ignore($designationId)],
             'description' => ['nullable', 'string', 'max:1000'],
             'max_users' => ['nullable', 'integer', 'min:1', 'max:1000000'],
         ];

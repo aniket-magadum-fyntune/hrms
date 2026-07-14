@@ -72,6 +72,7 @@ class OrganizationSettings
     }
 
     /**
+     * @param  array<string, mixed>|null  $settings
      * @return array<string, string>
      */
     public static function themeVariables(?array $settings = null): array
@@ -97,6 +98,9 @@ class OrganizationSettings
         ];
     }
 
+    /**
+     * @param  array<string, mixed>|null  $settings
+     */
     public static function themeStyle(?array $settings = null): string
     {
         return collect(self::themeVariables($settings))

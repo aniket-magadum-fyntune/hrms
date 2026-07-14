@@ -34,7 +34,7 @@ test('setup creates default access records', function (): void {
     $this->assertTrue($superAdmin->hasRole(AccessRegistry::SUPER_ADMIN_ROLE));
     $this->assertTrue($admin->hasRole(AccessRegistry::ADMIN_ROLE));
     $this->assertTrue($employee->hasRole(AccessRegistry::EMPLOYEE_ROLE));
-    $this->assertTrue($employee->hasAllPermissions(AccessRegistry::initialPermissionsForRole(AccessRegistry::EMPLOYEE_ROLE)));
+    $this->assertSame([], AccessRegistry::initialPermissionsForRole(AccessRegistry::EMPLOYEE_ROLE));
     $this->assertTrue($admin->hasAllPermissions(AccessRegistry::permissions()));
     $this->assertTrue(Gate::forUser($superAdmin)->allows('anything.on.the.portal'));
 

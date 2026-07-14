@@ -15,7 +15,7 @@ class Department extends Model
     use HasFactory;
 
     /**
-     * @return HasMany<User, $this>
+     * @return HasMany<Employee, $this>
      */
     public function employees(): HasMany
     {
