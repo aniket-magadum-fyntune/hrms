@@ -32,6 +32,24 @@ export type Designation = {
     users_count: number;
 };
 
+export type Employee = {
+    id: number;
+    employee_code: string;
+    name: string;
+    work_email: string | null;
+    user_id: number | null;
+    user_name: string | null;
+    user_email: string | null;
+    department_id: number | null;
+    department: string | null;
+    designation_id: number | null;
+    designation: string | null;
+    manager_id: number | null;
+    manager: string | null;
+    employment_status: string;
+    joined_on: string | null;
+};
+
 export type OptionItem = {
     id: number;
     name: string;
@@ -41,10 +59,8 @@ export type AccessUser = {
     id: number;
     name: string;
     email: string;
-    department_id: number | null;
-    department: string | null;
-    designation_id: number | null;
-    designation: string | null;
+    subject_type: string;
+    subject_label: string | null;
     roles: string[];
     created_at: string | null;
 };

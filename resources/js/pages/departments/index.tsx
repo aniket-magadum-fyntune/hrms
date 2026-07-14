@@ -250,7 +250,7 @@ DepartmentsIndex.layout = {
     breadcrumbs: [
         {
             title: 'People',
-            href: '/users',
+            href: '/employees',
         },
         {
             title: 'Departments',

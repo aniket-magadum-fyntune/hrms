@@ -6,6 +6,7 @@ use App\Access\AccessRegistry;
 use App\Access\AccessSynchronizer;
 use App\Models\Department;
 use App\Models\Designation;
+use App\Models\Employee;
 use App\Models\User;
 use App\Notifications\SetupPasswordNotification;
 use App\Support\OrganizationSettings;
@@ -33,6 +34,9 @@ class AppSetupCommand extends Command
         {--admin-name=Admin : Name for the Admin user}
         {--admin-email=admin@example.com : Email for the Admin user}
         {--admin-password=password : Password for the Admin user}
+        {--employee-name=Employee : Name for the sample Employee user}
+        {--employee-email=employee@example.com : Email for the sample Employee user}
+        {--employee-password=password : Password for the sample Employee user}
         {--generate-passwords : Generate random passwords instead of using password options}
         {--mail-passwords : Email the final passwords instead of printing them}';
 
@@ -79,6 +83,30 @@ class AppSetupCommand extends Command
         ['name' => 'Customer Support Executive', 'description' => 'Customer query handling, ticket updates, and service support.', 'max_users' => null],
     ];
 
+    private const DEFAULT_EMPLOYEES = [
+        'super_admin' => [
+            'employee_code' => 'EMP-0001',
+            'work_email' => 'super@example.com',
+            'department' => 'Administration',
+            'designation' => 'Chief Executive Officer',
+            'joined_on' => '2026-01-01',
+        ],
+        'admin' => [
+            'employee_code' => 'EMP-0002',
+            'work_email' => 'admin@example.com',
+            'department' => 'Human Resources',
+            'designation' => 'Human Resources Manager',
+            'joined_on' => '2026-01-02',
+        ],
+        'employee' => [
+            'employee_code' => 'EMP-0003',
+            'work_email' => 'employee@example.com',
+            'department' => 'Engineering',
+            'designation' => 'Software Engineer',
+            'joined_on' => '2026-01-03',
+        ],
+    ];
+
     /**
      * Execute the console command.
      */
@@ -118,13 +146,14 @@ class AppSetupCommand extends Command
             return self::FAILURE;
         }
 
-        if (! $this->ensureSetupCanRun($input['super_admin_email'], $input['admin_email'])) {
+        if (! $this->ensureSetupCanRun($input['super_admin_email'], $input['admin_email'], $input['employee_email'])) {
             return self::FAILURE;
         }
 
         $passwords = [
             'super_admin' => $this->option('generate-passwords') ? Str::password(24) : $input['super_admin_password'],
             'admin' => $this->option('generate-passwords') ? Str::password(24) : $input['admin_password'],
+            'employee' => $this->option('generate-passwords') ? Str::password(24) : $input['employee_password'],
         ];
 
         $access->sync(syncRoles: true);
@@ -152,7 +181,10 @@ class AppSetupCommand extends Command
      *     super_admin_password: string,
      *     admin_name: string,
      *     admin_email: string,
-     *     admin_password: string
+     *     admin_password: string,
+     *     employee_name: string,
+     *     employee_email: string,
+     *     employee_password: string
      * }
      *
      * @throws ValidationException
@@ -170,6 +202,9 @@ class AppSetupCommand extends Command
             'admin_name' => $this->option('admin-name'),
             'admin_email' => $this->option('admin-email'),
             'admin_password' => $this->option('admin-password'),
+            'employee_name' => $this->option('employee-name'),
+            'employee_email' => $this->option('employee-email'),
+            'employee_password' => $this->option('employee-password'),
         ], [
             'super_admin_name' => ['required', 'string', 'max:255'],
             'super_admin_email' => ['required', 'email', 'max:255'],
@@ -177,6 +212,9 @@ class AppSetupCommand extends Command
             'admin_name' => ['required', 'string', 'max:255'],
             'admin_email' => ['required', 'email', 'max:255'],
             'admin_password' => $passwordRules,
+            'employee_name' => ['required', 'string', 'max:255'],
+            'employee_email' => ['required', 'email', 'max:255'],
+            'employee_password' => $passwordRules,
         ]);
 
         $validated = $validator->validate();
@@ -187,12 +225,21 @@ class AppSetupCommand extends Command
          *     super_admin_password: string,
          *     admin_name: string,
          *     admin_email: string,
-         *     admin_password: string
+         *     admin_password: string,
+         *     employee_name: string,
+         *     employee_email: string,
+         *     employee_password: string
          * } $validated
          */
-        if (Str::lower($validated['super_admin_email']) === Str::lower($validated['admin_email'])) {
+        $emails = [
+            Str::lower($validated['super_admin_email']),
+            Str::lower($validated['admin_email']),
+            Str::lower($validated['employee_email']),
+        ];
+
+        if (count($emails) !== count(array_unique($emails))) {
             throw ValidationException::withMessages([
-                'admin_email' => 'The Admin email must be different from the Super Admin email.',
+                'employee_email' => 'The setup user emails must be different from each other.',
             ]);
         }
 
@@ -211,16 +258,17 @@ class AppSetupCommand extends Command
     {
         return Schema::hasTable('settings')
             && Schema::hasTable('users')
+            && Schema::hasTable('employees')
             && Schema::hasTable('departments')
             && Schema::hasTable('designations')
             && Schema::hasTable(config('permission.table_names.permissions'))
             && Schema::hasTable(config('permission.table_names.roles'));
     }
 
-    private function ensureSetupCanRun(string $superAdminEmail, string $adminEmail): bool
+    private function ensureSetupCanRun(string $superAdminEmail, string $adminEmail, string $employeeEmail): bool
     {
         $existingEmails = User::query()
-            ->whereIn('email', [$superAdminEmail, $adminEmail])
+            ->whereIn('email', [$superAdminEmail, $adminEmail, $employeeEmail])
             ->pluck('email')
             ->all();
 
@@ -238,10 +286,12 @@ class AppSetupCommand extends Command
      *     super_admin_name: string,
      *     super_admin_email: string,
      *     admin_name: string,
-     *     admin_email: string
+     *     admin_email: string,
+     *     employee_name: string,
+     *     employee_email: string
      * }  $input
-     * @param  array{super_admin: string, admin: string}  $passwords
-     * @return array{super_admin: User, admin: User}
+     * @param  array{super_admin: string, admin: string, employee: string}  $passwords
+     * @return array{super_admin: User, admin: User, employee: User}
      */
     private function provisionUsers(array $input, array $passwords): array
     {
@@ -265,8 +315,25 @@ class AppSetupCommand extends Command
                 'email_verified_at' => Carbon::now(),
             ]);
 
+            /** @var User $employee */
+            $employee = User::query()->create([
+                'name' => $input['employee_name'],
+                'email' => $input['employee_email'],
+                'password' => $passwords['employee'],
+                'email_verified_at' => Carbon::now(),
+            ]);
+
             $superAdmin->assignRole(AccessRegistry::SUPER_ADMIN_ROLE);
+            $superAdmin->assignRole(AccessRegistry::EMPLOYEE_ROLE);
             $admin->assignRole(AccessRegistry::ADMIN_ROLE);
+            $admin->assignRole(AccessRegistry::EMPLOYEE_ROLE);
+            $employee->assignRole(AccessRegistry::EMPLOYEE_ROLE);
+
+            $this->seedEmployeeProfiles([
+                'super_admin' => $superAdmin,
+                'admin' => $admin,
+                'employee' => $employee,
+            ]);
 
             DB::table('settings')->insert([
                 'group' => self::SETTINGS_GROUP,
@@ -280,6 +347,7 @@ class AppSetupCommand extends Command
             return [
                 'super_admin' => $superAdmin,
                 'admin' => $admin,
+                'employee' => $employee,
             ];
         });
     }
@@ -305,14 +373,36 @@ class AppSetupCommand extends Command
     }
 
     /**
-     * @param  array{super_admin: User, admin: User}  $users
-     * @param  array{super_admin: string, admin: string}  $passwords
+     * @param  array{super_admin: User, admin: User, employee: User}  $users
+     */
+    private function seedEmployeeProfiles(array $users): void
+    {
+        foreach (self::DEFAULT_EMPLOYEES as $key => $employee) {
+            $employee = Employee::query()->create([
+                'employee_code' => $employee['employee_code'],
+                'name' => $users[$key]->name,
+                'work_email' => $employee['work_email'],
+                'department_id' => Department::query()->where('name', $employee['department'])->value('id'),
+                'designation_id' => Designation::query()->where('name', $employee['designation'])->value('id'),
+                'employment_status' => 'active',
+                'joined_on' => $employee['joined_on'],
+            ]);
+
+            $users[$key]->userable()->associate($employee);
+            $users[$key]->save();
+        }
+    }
+
+    /**
+     * @param  array{super_admin: User, admin: User, employee: User}  $users
+     * @param  array{super_admin: string, admin: string, employee: string}  $passwords
      */
     private function mailPasswords(array $users, array $passwords): bool
     {
         try {
             Notification::send($users['super_admin'], new SetupPasswordNotification($passwords['super_admin']));
             Notification::send($users['admin'], new SetupPasswordNotification($passwords['admin']));
+            Notification::send($users['employee'], new SetupPasswordNotification($passwords['employee']));
         } catch (\Throwable $exception) {
             $this->components->error('Application setup completed, but credential delivery failed: '.$exception->getMessage());
 
@@ -323,14 +413,15 @@ class AppSetupCommand extends Command
     }
 
     /**
-     * @param  array{super_admin: User, admin: User}  $users
-     * @param  array{super_admin: string, admin: string}  $passwords
+     * @param  array{super_admin: User, admin: User, employee: User}  $users
+     * @param  array{super_admin: string, admin: string, employee: string}  $passwords
      */
     private function displayCredentials(array $users, array $passwords): void
     {
         $this->table(['Account', 'Email', 'Password'], [
             ['Super Admin', $users['super_admin']->email, $passwords['super_admin']],
             ['Admin', $users['admin']->email, $passwords['admin']],
+            ['Employee', $users['employee']->email, $passwords['employee']],
         ]);
     }
 }

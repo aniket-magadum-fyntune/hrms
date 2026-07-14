@@ -1,6 +1,7 @@
 import {
     BriefcaseBusiness,
     Building2,
+    IdCard,
     KeyRound,
     LayoutGrid,
     ShieldCheck,
@@ -21,9 +22,9 @@ export const appNavGroups: NavGroup[] = [
         icon: Users,
         items: [
             {
-                title: 'Users',
-                href: '/users',
-                icon: Users,
+                title: 'Employees',
+                href: '/employees',
+                icon: IdCard,
             },
             {
                 title: 'Departments',
@@ -41,6 +42,11 @@ export const appNavGroups: NavGroup[] = [
         title: 'Access',
         icon: ShieldCheck,
         items: [
+            {
+                title: 'Users',
+                href: '/users',
+                icon: Users,
+            },
             {
                 title: 'Roles',
                 href: '/roles',

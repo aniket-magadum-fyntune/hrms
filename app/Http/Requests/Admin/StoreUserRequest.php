@@ -21,8 +21,6 @@ class StoreUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
-            'department_id' => ['nullable', 'integer', Rule::exists('departments', 'id')],
-            'designation_id' => ['nullable', 'integer', Rule::exists('designations', 'id')],
             'roles' => ['array'],
             'roles.*' => ['string', Rule::exists('roles', 'name')],
         ];

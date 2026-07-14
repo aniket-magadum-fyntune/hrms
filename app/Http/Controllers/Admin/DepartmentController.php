@@ -17,14 +17,14 @@ class DepartmentController extends Controller
     public function index(IndexDepartmentsRequest $request): Response
     {
         $departments = Department::query()
-            ->withCount('users')
+            ->withCount('employees')
             ->orderBy('name')
             ->get()
             ->map(fn (Department $department): array => [
                 'id' => $department->id,
                 'name' => $department->name,
                 'description' => $department->description,
-                'users_count' => $department->users_count,
+                'users_count' => $department->employees_count,
             ]);
 
         return Inertia::render('departments/index', [

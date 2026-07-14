@@ -7,7 +7,8 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -20,8 +21,8 @@ use Spatie\Permission\Traits\HasRoles;
  * @property int $id
  * @property string $name
  * @property string $email
- * @property int|null $department_id
- * @property int|null $designation_id
+ * @property string|null $userable_type
+ * @property int|null $userable_id
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret
@@ -31,7 +32,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password', 'department_id', 'designation_id'])]
+#[Fillable(['name', 'email', 'password', 'userable_type', 'userable_id'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -53,18 +54,20 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
-     * @return BelongsTo<Department, $this>
+     * @return MorphTo<Model, $this>
      */
-    public function department(): BelongsTo
+    public function userable(): MorphTo
     {
-        return $this->belongsTo(Department::class);
+        return $this->morphTo();
     }
 
-    /**
-     * @return BelongsTo<Designation, $this>
-     */
-    public function designation(): BelongsTo
+    public function employee(): ?Employee
     {
-        return $this->belongsTo(Designation::class);
+        return $this->userable instanceof Employee ? $this->userable : null;
+    }
+
+    public function isEmployee(): bool
+    {
+        return $this->userable instanceof Employee;
     }
 }

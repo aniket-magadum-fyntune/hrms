@@ -17,7 +17,7 @@ class DesignationController extends Controller
     public function index(IndexDesignationsRequest $request): Response
     {
         $designations = Designation::query()
-            ->withCount('users')
+            ->withCount('employees')
             ->orderBy('name')
             ->get()
             ->map(fn (Designation $designation): array => [
@@ -25,7 +25,7 @@ class DesignationController extends Controller
                 'name' => $designation->name,
                 'description' => $designation->description,
                 'max_users' => $designation->max_users,
-                'users_count' => $designation->users_count,
+                'users_count' => $designation->employees_count,
             ]);
 
         return Inertia::render('designations/index', [
@@ -44,7 +44,7 @@ class DesignationController extends Controller
     {
         $validated = $request->validated();
 
-        $currentUsersCount = $designation->users()->count();
+        $currentUsersCount = $designation->employees()->count();
 
         if (($validated['max_users'] ?? null) !== null && $validated['max_users'] < $currentUsersCount) {
             return back()->withErrors([

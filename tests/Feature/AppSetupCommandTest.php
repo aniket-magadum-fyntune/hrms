@@ -3,6 +3,7 @@
 use App\Access\AccessRegistry;
 use App\Models\Department;
 use App\Models\Designation;
+use App\Models\Employee;
 use App\Models\User;
 use App\Notifications\SetupPasswordNotification;
 use App\Support\OrganizationSettings;
@@ -26,11 +27,14 @@ test('setup creates default access records', function (): void {
 
     $superAdmin = User::query()->where('email', 'super@example.com')->firstOrFail();
     $admin = User::query()->where('email', 'admin@example.com')->firstOrFail();
+    $employee = User::query()->where('email', 'employee@example.com')->firstOrFail();
 
     $this->assertTrue(Hash::check('password', $superAdmin->password));
     $this->assertTrue(Hash::check('password', $admin->password));
     $this->assertTrue($superAdmin->hasRole(AccessRegistry::SUPER_ADMIN_ROLE));
     $this->assertTrue($admin->hasRole(AccessRegistry::ADMIN_ROLE));
+    $this->assertTrue($employee->hasRole(AccessRegistry::EMPLOYEE_ROLE));
+    $this->assertSame([], AccessRegistry::initialPermissionsForRole(AccessRegistry::EMPLOYEE_ROLE));
     $this->assertTrue($admin->hasAllPermissions(AccessRegistry::permissions()));
     $this->assertTrue(Gate::forUser($superAdmin)->allows('anything.on.the.portal'));
 
@@ -47,6 +51,20 @@ test('setup creates default access records', function (): void {
         'locked' => true,
     ]);
 
+});
+
+test('setup creates default employee profiles', function (): void {
+    $this->artisan('app:setup --force')
+        ->assertExitCode(0);
+
+    $superAdmin = User::query()->where('email', 'super@example.com')->firstOrFail();
+    $employee = User::query()->where('email', 'employee@example.com')->firstOrFail();
+    $ceoDesignation = Designation::query()->where('name', 'Chief Executive Officer')->firstOrFail();
+
+    $this->assertSame(3, Employee::query()->count());
+    $this->assertSame('EMP-0001', $superAdmin->refresh()->employee()?->employee_code);
+    $this->assertSame($ceoDesignation->id, $superAdmin->employee()?->designation_id);
+    $this->assertSame('EMP-0003', $employee->refresh()->employee()?->employee_code);
 });
 
 test('setup creates default organization masters', function (): void {
@@ -186,7 +204,7 @@ test('setup fails when it has already run', function (): void {
     $exitCode = Artisan::call('app:setup', ['--force' => true]);
 
     $this->assertSame(1, $exitCode);
-    $this->assertSame(2, User::query()->count());
+    $this->assertSame(3, User::query()->count());
 });
 
 test('setup fails when emails match', function (): void {
